@@ -50,9 +50,37 @@ module.exports = function(httpServer) {
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
   ];
 
+  var bombGrid = [];
+  /**
+   * Create an empty grid for bombs the same size of the grid
+   */
+  var _createBombGrid = function() {
+    if (grid.length > 0) {
+      var lng = bombGrid.length = grid.length;
+      for (var i = 0; i < lng; i++) {
+        bombGrid[i] = [];
+        bombGrid[i].length = grid[0].length;  // Use th first Line length for every line
+      }
+    }
+    else {
+      bombGrid.length = 0;
+    }
+  };
+  var _clearBombGrid = function() {
+    var x, y, lngX, lngY = bombGrid.length;
+    for (y = 0; y < lngY; y++) {
+      lngX = bombGrid[y].length;
+      for (x = 0; x < lngX; x++) {
+        bombGrid[y][x] = null;
+      }
+    }
+  };
+  _createBombGrid();
+
   var players = [];
 
   var bombs = [];
+  var explodingBombs = [];
 
   var getNbPlayers = function() {
     return players.length;
@@ -84,12 +112,22 @@ module.exports = function(httpServer) {
   };
 
   var createBomb = function(player) {
-    bombs.push({
-      pos: _getGamePos(_getGridPos(player.position)),
+    var gridPos = _getGridPos(player.position);
+
+    // Create the bomb
+    var bomb = {
+      pos: _getGamePos(gridPos),
+      gridPos: gridPos,
       life: 200,
       power: player.power,
       creator: player  // It might not be a good idea to keep a ref to the player ...
-    });
+    };
+
+    console.log('bombX: ' + bomb.gridPos.x);
+    console.log('bombY: ' + bomb.gridPos.y);
+    bombs.push(bomb);
+    // Add bomb to the grid bomb
+    bombGrid[gridPos.y][gridPos.x] = bomb;
   };
 
   var addPlayer = function(player) {
@@ -230,21 +268,30 @@ module.exports = function(httpServer) {
     });
   };
 
+  var _addToExplodingBombList = function(bomb) {
+    var idx = bombs.indexOf(bomb);
+    // If the bomb is not already in the exploding list => remove from the bomb list & adds to the exploding list
+    if (idx >= 0) {
+      bombs.splice(idx, 1);
+      explodingBombs.push(bomb);
+    }
+  };
+
   var _processBombDir = function(power, bombGridPos, xDir, yDir) {
+    var bomb, gridPosX, gridPosY;
     var pwrIdx = 1;
     var gridObj = OBJECTS.UNKNOWN;
+
     while (pwrIdx <= power) {
-      gridObj = _getGridObject(bombGridPos.x + (xDir * pwrIdx), bombGridPos.y + (yDir * pwrIdx));
-      if (gridObj === OBJECTS.NONE) {
-        pwrIdx++;
-      }
-      else {
-        break;
-      }
-    }
-    // If the power did not reached its max => break brick/set flame RIGHT power
-    if (pwrIdx <= power) {
+      gridPosX = bombGridPos.x + (xDir * pwrIdx);
+      gridPosY = bombGridPos.y + (yDir * pwrIdx);
+      gridObj = _getGridObject(gridPosX, gridPosY);
+
+      // If this is a breakable brick => breaks it
       if (gridObj === OBJECTS.BRICK) {
+        // TODO FIX Creating Bonus now could lead to Bonus explosing with the chain explosion
+        // => A wall destroyed by 2 bombs but at the same time should not the bonus created by the first one to explode
+        // => Destroy the wall and create the bonus after all the bomb have exploded
         // TODO CLEAN: Sooo dirty ...
         var rnd = Math.floor(Math.random() * 3);
         if (rnd === 1) {
@@ -256,46 +303,75 @@ module.exports = function(httpServer) {
         else {
           gridObj = OBJECTS.NONE;
         }
-        _setGridObject(bombGridPos.x + (xDir * pwrIdx), bombGridPos.y + (yDir * pwrIdx), gridObj);
+        _setGridObject(gridPosX, gridPosY, gridObj);
+        return;
       }
+      // If this is a Bonus => Destroy
       else if (gridObj === OBJECTS.BONUS_BOMB || gridObj === OBJECTS.BONUS_FLAME) {
-        _setGridObject(bombGridPos.x + (xDir * pwrIdx), bombGridPos.y + (yDir * pwrIdx), OBJECTS.NONE);
+        _setGridObject(gridPosX, gridPosY, OBJECTS.NONE);
+        return;
       }
-      // TODO set flame power
+      // 
+      else if (gridObj === OBJECTS.NONE) {
+        // Check if there is in fact a bomb here
+        bomb = bombGrid[gridPosY][gridPosX];
+        if (bomb) {
+          // Add bomb to the exploding list
+          _addToExplodingBombList(bomb);
+          return;
+        }
+        // Else Continue
+      }
+      // WALL or UNKNOWN
+      else {
+        return;
+      }
+
+      // There is really nothing here
+      pwrIdx++;
     }
   };
 
   var _processBomb = function() {
-    var bombGridPos, lng = bombs.length;
-    for (var i = lng-1; i >= 0; i--) {
-      bombs[i].life--;
-      if (bombs[i].life <= 0) {
-
-        // Explode
-        bombGridPos = _getGridPos(bombs[i].pos);
-
-        // Process RIGHT
-        _processBombDir(bombs[i].power, bombGridPos, 1, 0);
-        // Process LEFT
-        _processBombDir(bombs[i].power, bombGridPos, -1, 0);
-        // Process TOP
-        _processBombDir(bombs[i].power, bombGridPos, 0, 1);
-        // Process BOTTOM
-        _processBombDir(bombs[i].power, bombGridPos, 0, -1);
-
-        // Update Bomber
-        if (bombs[i].creator) {
-          bombs[i].creator.bombs--;
-          if (bombs[i].creator.bombs < 0) {
-            console.log('ERROR: bombs < 0 for player: ' + bombs[i].creator.name);
-            bombs[i].creator.bombs = 0;
-          }
-          bombs[i].creator = null;
-        }
-
-        // TODO: In fact the bomb should be replaced by flames that could make other bomb to explode or player if in the passage during a short period
-        // Remove the Bomb
+    var bomb, i, lng = bombs.length;
+    for (i = lng-1; i >= 0; i--) {
+      bomb = bombs[i];
+      bomb.life--;
+      if (bomb.life <= 0) {
+        // Remove the Bomb and add it to the exploding bomb list
         bombs.splice(i, 1);
+        explodingBombs.push(bomb);
+      }
+    }
+
+    // Explode Bombs
+    while (explodingBombs.length) {
+      // Remove the bomb from the exploding list
+      bomb = explodingBombs.pop();
+      // TODO FIX: Removing Bomb from the grid now could lead with a wrong power management
+      // => 2 bombs side by side the first one with a power of 1 & the second with 5
+      // => The bomb 1 will make the bomb 2 to explode but as the bomb 1 is already removed from the grid, the bomb 2 will have a full power of 5 even in the firstion of bomb1
+      // => It shouldn't be the case in the real bomber man
+      // Remove bomb from the grid
+      bombGrid[bomb.gridPos.y][bomb.gridPos.x] = null;
+
+      // Process RIGHT
+      _processBombDir(bomb.power, bomb.gridPos, 1, 0);
+      // Process LEFT
+      _processBombDir(bomb.power, bomb.gridPos, -1, 0);
+      // Process TOP
+      _processBombDir(bomb.power, bomb.gridPos, 0, 1);
+      // Process BOTTOM
+      _processBombDir(bomb.power, bomb.gridPos, 0, -1);
+
+      // Update Bomber
+      if (bomb.creator) {
+        bomb.creator.bombs--;
+        if (bomb.creator.bombs < 0) {
+          console.log('ERROR: bombs < 0 for player: ' + bomb.creator.name);
+          bomb.creator.bombs = 0;
+        }
+        bomb.creator = null;
       }
     }
   };
