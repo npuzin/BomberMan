@@ -1,0 +1,7 @@
+/node_modules
+/.sass-cache
+/app/bower_components
+/app/styles/main.css
+/.tmp
+/dist
+/server/node_modules

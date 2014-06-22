@@ -1,0 +1,29 @@
+{
+  "node": true,
+  "-W097": false, /* disable warning W097: "Use the function form of "use strict" */
+  "-W083": false, /* disable warning W083: "Don't make functions within a loop" */
+  "browser": false,
+  "esnext": true,
+  "bitwise": true,
+  "camelcase": true,
+  "curly": true,
+  "eqeqeq": true,
+  "immed": true,
+  "indent": 2,
+  "latedef": true,
+  "newcap": true,
+  "noarg": true,
+  "quotmark": "single",
+  "regexp": true,
+  "undef": true,
+  "unused": true,
+  "strict": true,
+  "trailing": true,
+  "smarttabs": true,
+  "globals": {
+    "angular": false,
+    "$": false,
+    "document": false,
+    "_": false
+  }
+}

@@ -1,0 +1,18 @@
+h1 {
+  color: black;
+  display: inline-block;
+}
+
+a {
+  &:visited,&:link,&:active,&:hover {
+    color:blue;
+    text-decoration: none;
+  }
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+#myCanvas {
+  border: solid 1px #cdcdcd;
+}
