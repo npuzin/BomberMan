@@ -16,6 +16,9 @@ angular.module('BomberMan')
   var nbRefresh = 0;
   var drawingData = null;
 
+  // TODO CLEAN: It should come from the same file for the client and server if it is possible ...
+  var OBJECTS = {UNKNOWN: -1, NONE: 0, WALL: 1, BRICK: 2, BONUS_BOMB: 3, BONUS_FLAME: 4};
+
   var connect = function (color) {
     playerColor = color;
     var isNewConnection = socketIO.connect();
@@ -116,13 +119,28 @@ angular.module('BomberMan')
     for (var y = 0; y < lngY; y++) {
       lngX = drawingData.grid[y]?drawingData.grid[y].length:0;
       for (var x = 0; x < lngX; x++) {
-        if (drawingData.grid[y][x] === 1) {
+        if (drawingData.grid[y][x] === OBJECTS.WALL) {
           ctx.fillStyle = 'gray';
           ctx.fillRect(x*10, y*10, 10, 10);
         }
-        else if (drawingData.grid[y][x] === 2) {
+        else if (drawingData.grid[y][x] === OBJECTS.BRICK) {
           ctx.fillStyle = 'LightGray';
           ctx.fillRect(x*10, y*10, 10, 10);
+        }
+        else if (drawingData.grid[y][x] === OBJECTS.BONUS_FLAME) {
+          ctx.fillStyle = 'red';
+          ctx.fillRect(x*10, y*10, 10, 10);
+          ctx.fillStyle = 'gold';
+          ctx.fillRect(x*10+2, y*10+2, 6, 6);
+//          ctx.strokeStyle = 'blue';
+//          ctx.lineWidth   = 2;
+//          ctx.strokeRect(x*10, y*10, 10,10);
+        }
+        else if (drawingData.grid[y][x] === OBJECTS.BONUS_BOMB) {
+          ctx.fillStyle = 'red';
+          ctx.fillRect(x*10, y*10, 10, 10);
+          ctx.fillStyle = 'black';
+          ctx.fillRect(x*10+2, y*10+2, 6, 6);
         }
       }
     }
@@ -139,13 +157,6 @@ angular.module('BomberMan')
         ctx.fillStyle = 'black';
       }
       ctx.fillRect(bomb.pos.x, bomb.pos.y, 10, 10);
-    }
-  };
-
-  var drawApple = function() {
-    if (drawingData.apple) {
-      ctx.fillStyle = 'green';
-      ctx.fillRect(drawingData.apple.pos.x, drawingData.apple.pos.y, drawingData.appleSize.width, drawingData.appleSize.height);
     }
   };
 
@@ -205,7 +216,6 @@ angular.module('BomberMan')
     clearRect();
     drawGrid();
     drawPlayers();
-	  drawApple();
     drawBombs();
 
     nbRefresh++;

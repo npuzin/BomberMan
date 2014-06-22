@@ -4,7 +4,6 @@ module.exports = function(httpServer) {
 
   var io = require('socket.io')(httpServer);
 
-  var APPLE_SIZE = {width:5, height:5};
   var PLAYER_SIZE = {width:10, height:10};
   var GAME_SPEED = 100;
   var MOVE = {NONE:'none',LEFT:'left',RIGHT:'right',UP:'up',DOWN:'down'};
@@ -12,7 +11,7 @@ module.exports = function(httpServer) {
   // TODO Compute Canvas according to the grid
   var GRID_UNIT_SIZE = {width:10,height:10};
 
-  var OBJECTS = {UNKNOWN: -1, NONE: 0, WALL: 1, BRICK: 2};
+  var OBJECTS = {UNKNOWN: -1, NONE: 0, WALL: 1, BRICK: 2, BONUS_BOMB: 3, BONUS_FLAME: 4};
 
 
   var COLORS = [
@@ -33,9 +32,9 @@ module.exports = function(httpServer) {
     [1,0,1,2,1,0,1,0,1,0,1,0,1,0,1,0,1,2,1,0,1],
     [1,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,1],
     [1,2,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,2,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,2,0,2,0,0,0,0,0,0,0,0,1],
     [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,2,0,0,0,0,0,0,0,2,0,0,0,0,0,1],
     [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
     [1,0,0,0,0,0,0,0,0,2,2,2,0,0,0,0,0,0,0,0,1],
     [1,0,1,0,1,0,1,0,1,2,1,2,1,0,1,0,1,0,1,0,1],
@@ -52,8 +51,6 @@ module.exports = function(httpServer) {
   ];
 
   var players = [];
-
-  var apple = {pos: {x: 10, y: 10}};
 
   var bombs = [];
 
@@ -78,7 +75,7 @@ module.exports = function(httpServer) {
       verticalMove: MOVE.NONE,
       horizontalMove: MOVE.NONE,
       score: 0,
-      power: 3,
+      power: 1,
       bombs: 0,
       maxBombs: 1
     };
@@ -148,10 +145,8 @@ module.exports = function(httpServer) {
     var result = {
       canvasSize: CANVAS_SIZE,
       playerSize: PLAYER_SIZE,
-      appleSize: APPLE_SIZE,
       grid: grid,
       players: players,
-      apple: apple,
       bombs: bombs
     };
     return result;
@@ -174,15 +169,6 @@ module.exports = function(httpServer) {
     }
   };
 
-  var _isFreeGridPos = function(pos) {
-    if (pos.y < grid.length) {
-      if (pos.x < grid[pos.y].length) {
-        return (grid[pos.y][pos.x] === 0);
-      }
-    }
-    return false;
-  };
-
   var _getGridPos = function (pos) {
     return {
       x: Math.floor((pos.x + PLAYER_SIZE.width * 0.5) / GRID_UNIT_SIZE.width),
@@ -197,75 +183,51 @@ module.exports = function(httpServer) {
     };
   };
 
+  var _processMoveDir = function(player, xDir, yDir) {
+    var gridPos, gridObj, newGridPos;
+    var newPosX = player.position.x + xDir;
+    var newPosY = player.position.y + yDir;
+    if (newPosX >= 0 && newPosY >= 0 && newPosY + PLAYER_SIZE.height <= CANVAS_SIZE.height && newPosX + PLAYER_SIZE.width <= CANVAS_SIZE.width) {
+      // This will be used when bomb will have collision and we still want to be able to move on bomb if it appears under a player
+      gridPos = _getGridPos(player.position);
+      newGridPos = _getGridPos({x: newPosX, y: newPosY});
+      gridObj = _getGridObject(newGridPos.x, newGridPos.y);
+      if (gridObj === OBJECTS.BONUS_BOMB) {
+        _setGridObject(newGridPos.x, newGridPos.y, OBJECTS.NONE);
+        // Get another bomb
+        player.maxBombs++;
+        player.position.x = newPosX;
+        player.position.y = newPosY;
+      }
+      else if (gridObj === OBJECTS.BONUS_FLAME) {
+        _setGridObject(newGridPos.x, newGridPos.y, OBJECTS.NONE);
+        // Flames are bigger
+        player.power++;
+        player.position.x = newPosX;
+        player.position.y = newPosY;
+      }
+      else if (gridObj === OBJECTS.NONE) {
+        player.position.x = newPosX;
+        player.position.y = newPosY;
+      }
+    }
+  };
+
   var processMove = function() {
 
-    var shouldMoveApple = false;
     players.forEach(function(player) {
 
-      var gridPos;
-      var newGridPos;
-      var newPos = null;
+      // TODO FACTORIZE
       if (player.verticalMove === MOVE.UP) {
-        newPos = player.position.y - 1;
-        if (newPos >= 0) {
-          // This will be used when bomb will have collision and we still want to be able to move on bomb if it appears under a player
-          gridPos = _getGridPos(player.position);
-
-          newGridPos = _getGridPos({x: player.position.x, y: newPos});
-          if (_isFreeGridPos(newGridPos)) {
-            player.position.y = newPos;
-          }
-        }
+        _processMoveDir(player, 0, -1);
       } else if (player.verticalMove === MOVE.DOWN) {
-        newPos = player.position.y + 1;
-        if (newPos + PLAYER_SIZE.height <= CANVAS_SIZE.height) {
-          gridPos = _getGridPos(player.position);
-          newGridPos = _getGridPos({x: player.position.x, y: newPos});
-          if (_isFreeGridPos(newGridPos)) {
-            player.position.y = newPos;
-          }
-        }
+        _processMoveDir(player, 0, 1);
       } else if (player.horizontalMove === MOVE.LEFT) {
-        newPos = player.position.x - 1;
-        if (newPos >= 0) {
-          gridPos = _getGridPos(player.position);
-          newGridPos = _getGridPos({x: newPos, y: player.position.y});
-          if (_isFreeGridPos(newGridPos)) {
-            player.position.x = newPos;
-          }
-        }
+        _processMoveDir(player, -1, 0);
       } else if (player.horizontalMove === MOVE.RIGHT) {
-        newPos = player.position.x + 1;
-        if (newPos + PLAYER_SIZE.width <= CANVAS_SIZE.width) {
-          gridPos = _getGridPos(player.position);
-          newGridPos = _getGridPos({x: newPos, y: player.position.y});
-          if (_isFreeGridPos(newGridPos)) {
-            player.position.x = newPos;
-          }
-        }
-      }
-
-      if (apple) {
-        if ((player.position.x+PLAYER_SIZE.width > apple.pos.x) &&
-          (player.position.x < apple.pos.x + APPLE_SIZE.width) &&
-          (player.position.y+PLAYER_SIZE.height > apple.pos.y) &&
-          (player.position.y < apple.pos.y + APPLE_SIZE.height)) {
-          player.score += 1;
-          player.maxBombs++;
-          // Do not remove the apple in case 2 players get it at the same time => both will game points
-          shouldMoveApple = true;
-        }
+        _processMoveDir(player, 1, 0);
       }
     });
-
-    // Move the Apple if anyone got the apple
-    if (shouldMoveApple) {
-      if (!apple) {
-        apple = {pos: {x: 0, y: 0}};
-      }
-      apple.pos.x = Math.floor(Math.random() * (CANVAS_SIZE.width - APPLE_SIZE.width));
-      apple.pos.y = Math.floor(Math.random() * (CANVAS_SIZE.height - APPLE_SIZE.height));
-    }
   };
 
   var _processBombDir = function(power, bombGridPos, xDir, yDir) {
@@ -283,7 +245,20 @@ module.exports = function(httpServer) {
     // If the power did not reached its max => break brick/set flame RIGHT power
     if (pwrIdx <= power) {
       if (gridObj === OBJECTS.BRICK) {
-        // TODO: It might become a bonus later
+        // TODO CLEAN: Sooo dirty ...
+        var rnd = Math.floor(Math.random() * 3);
+        if (rnd === 1) {
+          gridObj = OBJECTS.BONUS_FLAME;
+        }
+        else if (rnd === 2) {
+          gridObj = OBJECTS.BONUS_BOMB;
+        }
+        else {
+          gridObj = OBJECTS.NONE;
+        }
+        _setGridObject(bombGridPos.x + (xDir * pwrIdx), bombGridPos.y + (yDir * pwrIdx), gridObj);
+      }
+      else if (gridObj === OBJECTS.BONUS_BOMB || gridObj === OBJECTS.BONUS_FLAME) {
         _setGridObject(bombGridPos.x + (xDir * pwrIdx), bombGridPos.y + (yDir * pwrIdx), OBJECTS.NONE);
       }
       // TODO set flame power
