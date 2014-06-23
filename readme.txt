@@ -1,5 +1,6 @@
 Setup:
 
+  - npm install -g node-inspector (install node-inspector in global)
   - npm install
   - cd server
   - npm install

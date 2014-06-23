@@ -17,6 +17,8 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-usemin');
   grunt.loadNpmTasks('grunt-text-replace');
   grunt.loadNpmTasks('grunt-express-server');
+  grunt.loadNpmTasks('grunt-bg-shell');
+  grunt.loadNpmTasks('grunt-open');
 
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
@@ -147,8 +149,26 @@ module.exports = function(grunt) {
 
       server: {
         options: {
-          script: './server/server.js'
+          script: './server/server.js',
+          debug: true
         }
+      }
+    },
+
+    open: {
+
+      debugPage : {
+        path: 'http://localhost:8080/debug?port=5858'
+      },
+      appPage : {
+        path: 'http://localhost:9001'
+      },
+    },
+
+    bgShell: {
+      'node-inspector': {
+        cmd: 'node-inspector',
+        bg: true
       }
     },
 
@@ -202,7 +222,7 @@ module.exports = function(grunt) {
     'clean:tmp'
   ]);
 
-  grunt.registerTask('dev', ['build','express:server','watch']);
+  grunt.registerTask('dev', ['build','bgShell:node-inspector','open','express:server','watch']);
 
   grunt.registerTask('dist', ['package','express:server']);
 };
