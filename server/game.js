@@ -66,7 +66,7 @@ module.exports = function(httpServer) {
       bombGrid.length = 0;
     }
   };
-  var _clearBombGrid = function() {
+  /*var _clearBombGrid = function() {
     var x, y, lngX, lngY = bombGrid.length;
     for (y = 0; y < lngY; y++) {
       lngX = bombGrid[y].length;
@@ -74,7 +74,7 @@ module.exports = function(httpServer) {
         bombGrid[y][x] = null;
       }
     }
-  };
+  };*/
   _createBombGrid();
 
   var players = [];
@@ -311,7 +311,7 @@ module.exports = function(httpServer) {
         _setGridObject(gridPosX, gridPosY, OBJECTS.NONE);
         return;
       }
-      // 
+      //
       else if (gridObj === OBJECTS.NONE) {
         // Check if there is in fact a bomb here
         bomb = bombGrid[gridPosY][gridPosX];
@@ -419,7 +419,7 @@ module.exports = function(httpServer) {
 
     socket.on('move', function(data) {
 
-      console.log('move ' + data + ' ' + socket.player.name);
+      console.log('move8 ' + data + ' ' + socket.player.name);
       if (data === MOVE.LEFT) {
         moveLeft(socket.player);
       } else if (data === MOVE.RIGHT) {

@@ -31,7 +31,7 @@ module.exports = function(grunt) {
 
       express: {
         files:  [ './server/**/*.{js,json}' ],
-        tasks:  [ 'express:server' ],
+        tasks:  [ 'jshint','express:server' ],
         options: {
           spawn: false
         }
@@ -141,7 +141,8 @@ module.exports = function(grunt) {
       },
       all: [
         'Gruntfile.js',
-        'app/scripts/**/*.js'
+        'app/scripts/**/*.js',
+        'server/*.js'
       ]
     },
 
