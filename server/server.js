@@ -94,11 +94,12 @@ io.on('connection', function (_socket) {
   socket.on('createGame', function(game) {
     console.log('createGame');
     var gameId = game.name.replace(/ /g,'').toLowerCase();
-    games.push(game);
-    io.emit('createGame', {
+    var gameObj = {
       id: gameId,
       name:game.name
-    });
+    };
+     games.push(gameObj);
+    io.emit('createGame', gameObj);
   });
 
 });
