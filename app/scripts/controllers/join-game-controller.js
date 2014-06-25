@@ -8,7 +8,11 @@ angular.module('BomberMan')
 
   var getGameDetails = function(id) {
     socketIO.emit('getGame', id).then(function (response) {
-      $scope.game = response;
+      if (response === null) {
+        $location.path('/home');
+      } else {
+        $scope.game = response;
+      }
     }, function () {
       $location.path('/home');
     });
