@@ -13,6 +13,10 @@ angular.module('BomberMan', ['ngRoute', 'ngCookies'])
         templateUrl: 'templates/views/login.html',
         controller: 'LoginController',
       })
+      .when('/join/:gameId', {
+        templateUrl: 'templates/views/join-game.html',
+        controller: 'JoinGameController',
+      })
       .otherwise({
         redirectTo: '/'
       });
@@ -29,6 +33,8 @@ angular.module('BomberMan', ['ngRoute', 'ngCookies'])
 
         if(!userSession.isLoggedIn() && (path !== '/login' && $location.path() !== '/')){
           $location.path('/login');
+        } else if (userSession.isLoggedIn() && path === '/') {
+          $location.path('/home');
         }
 
       }

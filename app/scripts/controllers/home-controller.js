@@ -5,7 +5,6 @@ angular.module('BomberMan')
 .controller('HomeController', ['$scope', 'userSession', 'socketIO', '$log', '$location', function($scope, userSession, socketIO, $log, $location) {
 
   $scope.userName = userSession.getUserName();
-
   $scope.socketIO = socketIO;
   $scope.users = [];
 
@@ -37,13 +36,15 @@ angular.module('BomberMan')
     });
   };
 
-
-  if (socketIO.isConnected()) {
+  var loadPageData = function() {
     $scope.getListOfUsers();
-  } else {
-    socketIO.on('connect', function() {
-      $scope.getListOfUsers();
-    });
-  }
+  };
+
+  $scope.$on('connect', function() {
+
+    loadPageData();
+  });
+
+  loadPageData();
 
 }]);

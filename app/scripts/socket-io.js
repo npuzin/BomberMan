@@ -50,10 +50,12 @@ angular.module('BomberMan')
     socket.sendBuffer = [];
     socket.acks = {};
     _isConnected = true;
+    $rootScope.$broadcast('connect');
   });
 
   on('disconnect', function () {
     _isConnected = false;
+    $rootScope.$broadcast('disconnect');
   });
 
   return {

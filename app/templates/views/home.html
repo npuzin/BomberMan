@@ -8,7 +8,7 @@
       User <span ng-bind="userName"></span> is logged in
       <button type="button" ng-click="logout()">Logout</button>
 
-      <div style="padding-top:20px">
+      <div style="padding-top:10px">
         List of users connected:
         <ul>
           <li ng-repeat="user in users">
@@ -16,6 +16,9 @@
           </li>
         </ul>
       </div>
+
+      <div ng-include="'templates/views/game.html'" ></div>
+
     </div>
 
     <div ng-include="'templates/views/chat.html'" ></div>

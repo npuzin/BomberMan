@@ -27,6 +27,8 @@ var parseCookie = function(cookie) {
   return result;
 };
 
+var games = [];
+
 io.on('connection', function (_socket) {
   console.log('new connection open');
 
@@ -81,6 +83,21 @@ io.on('connection', function (_socket) {
     ack( {
       success: true,
       data:  userSessions.getListOfUsers()
+    });
+  });
+
+  socket.on('getListOfGames', function(data, ack) {
+    console.log('getListOfGames');
+    ack(games);
+  });
+
+  socket.on('createGame', function(game) {
+    console.log('createGame');
+    var gameId = game.name.replace(/ /g,'').toLowerCase();
+    games.push(game);
+    io.emit('createGame', {
+      id: gameId,
+      name:game.name
     });
   });
 
