@@ -10,6 +10,10 @@ angular.module('BomberMan')
 
   $scope.login = function () {
 
+    if (!$scope.username || $scope.username === '') {
+      return;
+    }
+
     $scope.errorMessage = '';
     userSession.login($scope.username).then(function () {
 

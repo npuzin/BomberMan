@@ -8,20 +8,31 @@ angular.module('BomberMan')
   $scope.chatMessage = null;
   $scope.chatMessages = '';
 
-  $scope.sendMessage = function() {
-
+  var appendMessage = function(user, message) {
     var lineBreak = '';
     if ($scope.chatMessages !== '') {
       lineBreak = '\n';
     }
-    $scope.chatMessages = $scope.chatMessages + lineBreak + userSession.getUserName() + ': ' + $scope.chatMessage;
+    $scope.chatMessages = $scope.chatMessages + lineBreak + user + ': ' + message;
     $scope.chatMessage = '';
 
     var textarea = $('#chatDiv textarea');
     textarea.scrollTop(textarea[0].scrollHeight);
+  };
+
+  $scope.sendMessage = function() {
+
+    socketIO.emit('sendMessage',$scope.chatMessage).then(function () {
+      appendMessage(userSession.getUserName(), $scope.chatMessage);
+    });
 
   };
 
+
+  socketIO.on('sendMessage', function(data) {
+
+    appendMessage(data.user,data.message);
+  });
 
 
 }]);

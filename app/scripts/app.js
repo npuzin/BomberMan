@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('BomberMan', ['ngRoute'])
+angular.module('BomberMan', ['ngRoute', 'ngCookies'])
 
   .config(['$routeProvider', function ($routeProvider) {
 
@@ -19,7 +19,7 @@ angular.module('BomberMan', ['ngRoute'])
 
   }])
 
-  .run(['$log', '$rootScope', 'userSession', '$location', function ($log,$rootScope, userSession, $location) {
+  .run(['$log', '$rootScope', 'userSession', '$location', function ($log, $rootScope, userSession, $location) {
 
     $log.debug('application started');
 

@@ -12,11 +12,29 @@ app.use(express.static(__dirname + './../app'));
 
 var userSessions = new UserSessions();
 
+var parseCookie = function(cookie) {
+
+  if (!cookie) {
+    return {};
+  }
+  var c = cookie.split(';');
+  var result = {};
+  c.forEach(function(curr) {
+
+    var values = curr.split('=');
+    result[values[0].trim()] = values[1].trim();
+  });
+  return result;
+};
 
 io.on('connection', function (_socket) {
   console.log('new connection open');
 
   var socket= new Socket(_socket);
+  var cookies = parseCookie(_socket.handshake.headers.cookie);
+  if (cookies.username && userSessions.getSession(cookies.username)) {
+    socket.userSession = userSessions.getSession(cookies.username);
+  }
 
   socket.on('login', function(username, ack) {
 
@@ -49,17 +67,12 @@ io.on('connection', function (_socket) {
     ack();
   });
 
-  socket.on('disconnect', function () {
-    if (socket.userSession) {
-      console.log('user ' + socket.userSession.getUserName() + ' has been disconnected');
-      socket.broadcast.emit('userHasLoggedOut',  socket.userSession.getUserName());
-      userSessions.destroySession(socket.userSession.getUserName());
-    }
-  });
-
   socket.on('sendMessage', function (data, ack) {
 
-    socket.broadcast.emit('sendMessage', data);
+    socket.broadcast.emit('sendMessage', {
+      user: socket.userSession.getUserName(),
+      message:data
+    });
     ack();
   });
 

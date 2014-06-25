@@ -2,17 +2,14 @@
 
 angular.module('BomberMan')
 
-.service('userSession', ['socketIO','$q', function (socketIO,$q) {
-
-  var _isLoggedIn = false;
-  var _username = null;
+.service('userSession', ['socketIO','$q', '$cookies', function (socketIO,$q,$cookies) {
 
   var getUserName = function() {
-    return _username;
+    return $cookies.username;
   };
 
   var isLoggedIn = function() {
-    return _isLoggedIn;
+    return angular.isDefined($cookies.username);
   };
 
   var logout = function() {
@@ -20,8 +17,7 @@ angular.module('BomberMan')
     var dfr = $q.defer();
     socketIO.emit('logout').then(function () {
 
-      _isLoggedIn = false;
-      _username = null;
+      delete $cookies.username;
       dfr.resolve();
     }, function () {
       dfr.reject();
@@ -37,8 +33,7 @@ angular.module('BomberMan')
     socketIO.emit('login', username).then(function (result) {
 
       if (result.success) {
-        _isLoggedIn = true;
-        _username = result.data;
+        $cookies.username = result.data;
         dfr.resolve(result);
       } else {
         dfr.reject(result.error);

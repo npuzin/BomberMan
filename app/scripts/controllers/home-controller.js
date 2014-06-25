@@ -12,18 +12,18 @@ angular.module('BomberMan')
   $scope.getListOfUsers = function () {
 
     socketIO.emit('getListOfUsers').then(function (result) {
-      console.log(result);
+
       $scope.users = result.data;
     });
   };
 
   socketIO.on('userHasLoggedIn', function (user) {
-    console.log('userHasLoggedIn');
+
     $scope.users.push(user);
   });
 
   socketIO.on('userHasLoggedOut', function (user) {
-    console.log('userHasLoggedOut');
+
     var i = $scope.users.indexOf(user);
     $scope.users.splice(i,1);
   });
@@ -32,12 +32,18 @@ angular.module('BomberMan')
   $scope.logout = function() {
 
     userSession.logout().then(function () {
-      console.log('user has loggout');
+
       $location.path('/');
-    }, function () {
-      $log.error('logout failed');
     });
   };
 
-  $scope.getListOfUsers();
+
+  if (socketIO.isConnected()) {
+    $scope.getListOfUsers();
+  } else {
+    socketIO.on('connect', function() {
+      $scope.getListOfUsers();
+    });
+  }
+
 }]);
