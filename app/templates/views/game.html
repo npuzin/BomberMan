@@ -7,7 +7,7 @@
   <div style="padding-top:10px">
     <ul>
       <li ng-repeat="game in games">
-        <span ng-bind="game.name"></span> <a href="#/join/{{game.id}}">join</a>
+        <span ng-bind="game.name + '(' + game.userCount + ')'"></span> <a href="#/join/{{game.id}}">join</a>
       </li>
     </ul>
   </div>

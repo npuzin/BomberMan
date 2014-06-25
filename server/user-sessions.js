@@ -13,6 +13,19 @@ function UserSessions() {
     });
   };
 
+  this.removeSession = function(session) {
+
+    var i = _sessions.indexOf(session);
+    if (i !== -1) {
+      _sessions.splice(i,1);
+    }
+
+  };
+
+  this.contains = function(session) {
+    return _.contains(_sessions, session);
+  };
+
   this.destroySession = function(username) {
     var session = this.getSession(username);
     if (session) {
@@ -27,6 +40,10 @@ function UserSessions() {
       _sessions.push(newSession);
       return newSession;
     }
+  };
+
+  this.addSession = function (userSession) {
+    _sessions.push(userSession);
   };
 
   this.getListOfUsers = function() {

@@ -45,6 +45,7 @@ angular.module('BomberMan')
     loadPageData();
   });
 
-  loadPageData();
-
+  if (socketIO.isConnected()) {
+    loadPageData();
+  }
 }]);

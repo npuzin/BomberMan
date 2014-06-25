@@ -7,7 +7,7 @@ angular.module('BomberMan')
   $scope.game= null;
 
   var getGameDetails = function(id) {
-    socketIO.emit('getGame', id).then(function (response) {
+    socketIO.emit('joinAndGetGameDetails', id).then(function (response) {
       if (response === null) {
         $location.path('/home');
       } else {
@@ -18,6 +18,19 @@ angular.module('BomberMan')
     });
   };
 
+  $scope.deleteGame = function() {
+
+    socketIO.emit('deleteGame', $scope.game.id).then(function () {
+       $location.path('/home');
+    });
+  };
+
+  $scope.leaveGame = function() {
+
+    socketIO.emit('leaveGame', $scope.game.id).then(function () {
+       $location.path('/home');
+    });
+  };
 
   var loadPageData = function() {
 
@@ -29,6 +42,8 @@ angular.module('BomberMan')
     loadPageData();
   });
 
-  loadPageData();
+  if (socketIO.isConnected()) {
+    loadPageData();
+  }
 
 }]);
