@@ -23,7 +23,6 @@
   "globals": {
     "angular": false,
     "$": false,
-    "document": false,
-    "_": false
+    "document": false
   }
 }

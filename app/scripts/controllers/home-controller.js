@@ -2,37 +2,42 @@
 
 angular.module('BomberMan')
 
-  .controller('HomeController', ['$scope', '$rootScope', 'clientGame', '$http', function ($scope,$rootScope, clientGame, $http) {
+.controller('HomeController', ['$scope', 'userSession', 'socketIO', '$log', '$location', function($scope, userSession, socketIO, $log, $location) {
 
-    $scope.gameHasStarted = false;
-    $scope.nbPlayersInTheGame = 0;
-    $scope.frameRate = '';
-	  $scope.score = 0;
-    $scope.clientGame = clientGame;
+  $scope.userName = userSession.getUserName();
 
-    $http.get('/server/colors').then(function (response) {
-      $scope.availableColors = response.data.colors;
-      $scope.playerColor = $scope.availableColors[0];
+  $scope.socketIO = socketIO;
+  $scope.users = [];
+
+  $scope.getListOfUsers = function () {
+
+    socketIO.emit('getListOfUsers').then(function (result) {
+      console.log(result);
+      $scope.users = result.data;
     });
+  };
 
-    $(document).on('keydown', function (event) {
+  socketIO.on('userHasLoggedIn', function (user) {
+    console.log('userHasLoggedIn');
+    $scope.users.push(user);
+  });
 
-      var key = event.which;
-      clientGame.keyDown(key);
+  socketIO.on('userHasLoggedOut', function (user) {
+    console.log('userHasLoggedOut');
+    var i = $scope.users.indexOf(user);
+    $scope.users.splice(i,1);
+  });
+
+
+  $scope.logout = function() {
+
+    userSession.logout().then(function () {
+      console.log('user has loggout');
+      $location.path('/');
+    }, function () {
+      $log.error('logout failed');
     });
+  };
 
-    $(document).on('keyup', function (event) {
-
-      var key = event.which;
-      clientGame.keyUp(key);
-    });
-
-    $scope.connect = function() {
-      clientGame.connect($scope.playerColor);
-    };
-
-    $scope.disconnect = function() {
-      clientGame.disconnect();
-    };
-
-  }]);
+  $scope.getListOfUsers();
+}]);

@@ -16,3 +16,42 @@ a {
 #myCanvas {
   border: solid 1px #cdcdcd;
 }
+
+.error {
+  color:red;
+}
+
+ul {
+  list-style-type: none;
+  padding-left:20px;
+}
+
+#chatDiv {
+
+  position: fixed;
+  bottom:0px;
+
+  textarea {
+    height: 100px;
+    width: 100%;
+    border:solid 1px #cdcdcd;
+    padding-bottom: 20px;
+  }
+  #writeMessageDiv {
+    width: 100%;
+
+    .colBtn {
+      width: 1%;
+    }
+    .colTxt {
+      width: 99%;
+    }
+    .txt {
+      border: solid 1px #cdcdcd;
+      width: 100%;
+    }
+    .btn {
+      width: 100px;
+    }
+  }
+}

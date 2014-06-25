@@ -1,17 +1,24 @@
-<div id="login" ng-hide="clientGame.getGameHasStarted()">
+<div>
   <div>
-    Choose your color: <select ng-model="playerColor" ng-options="color.name for color in availableColors"></select>
+    Connected to the server: <span ng-bind="socketIO.isConnected()"></span>
   </div>
-  <button ng-click="connect()">connect</button>
+
+  <div>
+    <div>
+      User <span ng-bind="userName"></span> is logged in
+      <button type="button" ng-click="logout()">Logout</button>
+
+      <div>
+        List of users connected:
+        <ul>
+          <li ng-repeat="user in users">
+            <span ng-bind="user"></span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div ng-include="'templates/views/chat.html'" ></div>
+  </div>
 </div>
-<div ng-show="clientGame.getGameHasStarted()">
-  <canvas id="myCanvas" ></canvas>
-  <div>
-    frame rate: <span ng-bind="clientGame.getFrameRate()"></span><br/>
-    number of players: <span ng-bind="clientGame.getNbPlayers()"></span><br/>
-	score: <span ng-bind="clientGame.getScore()"></span><br/>
-  </div>
-  <div>
-    <button ng-click="disconnect()">disconnect</button>
-  </div>
-</div>
+

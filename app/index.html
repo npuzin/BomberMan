@@ -6,8 +6,8 @@
     <script src="bower_components\jquery\dist/jquery.min.js"></script>
     <script src="bower_components/angular/angular.js"></script>
     <script src="bower_components/angular-route/angular-route.js"></script>
-    <script src="bower_components/socket.io-client/socket.io.js"></script>
     <script src="bower_components/underscore/underscore.js"></script>
+    <script src="bower_components/socket.io-client/socket.io.js"></script>
     <!-- endbuild -->
     <!-- build:css styles/main.css -->
     <link rel="stylesheet" href="styles/main.css">
@@ -16,11 +16,15 @@
   <body ng-cloak>
 
     <div id="viewDiv" ng-view=""></div>
+
     <!-- build:js scripts/scripts.min.js -->
     <script src="scripts/app.js"></script>
+    <script src="scripts/controllers/chat-controller.js"></script>
+    <script src="scripts/controllers/login-controller.js"></script>
     <script src="scripts/controllers/home-controller.js"></script>
-    <script src="scripts/factories/socket.io-factory.js"></script>
-    <script src="scripts/factories/client-game-factory.js"></script>
+    <script src="scripts/socket-io.js"></script>
+    <script src="scripts/lib/underscore.js"></script>
+    <script src="scripts/user-session.js"></script>
     <!-- endbuild -->
 
   </body>

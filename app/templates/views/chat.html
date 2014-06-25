@@ -1,0 +1,18 @@
+<div id="chatDiv" ng-controller="ChatController">
+  <textarea  ng-model="chatMessages" readonly>
+  </textarea>
+  <div id="writeMessageDiv">
+    <form>
+      <table>
+        <tr>
+          <td class="colTxt">
+            <input type="text" class="txt" ng-model="chatMessage" />
+          </td>
+          <td class="colBtn">
+            <button class="btn" type="submit" ng-click="sendMessage()">Send</button>
+          </td>
+        </tr>
+      </table>
+    </form>
+  </div>
+</div>
