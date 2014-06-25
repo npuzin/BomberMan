@@ -1,13 +1,14 @@
 <div ng-controller="GameController">
+  <form>
     <div style="padding-top:10px">
-        <input type="text" ng-model="gameName" /> <button type="button" ng-click="createGame()">create</button>
+      <input type="text" ng-model="gameName" /> <button type="submit" ng-click="createGame()">create</button>
     </div>
-
-    <div style="padding-top:10px">
-        <ul>
-          <li ng-repeat="game in games">
-            <span ng-bind="game.name"></span> <a href="#/join/{{game.id}}">join</a>
-          </li>
-        </ul>
-    </div>
+  </form>
+  <div style="padding-top:10px">
+    <ul>
+      <li ng-repeat="game in games">
+        <span ng-bind="game.name"></span> <a href="#/join/{{game.id}}">join</a>
+      </li>
+    </ul>
+  </div>
 </div>

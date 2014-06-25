@@ -13,9 +13,7 @@ angular.module('BomberMan')
     if ($scope.gameName === '') {
       return;
     }
-    socketIO.emit('createGame', {
-      name: $scope.gameName
-    });
+    socketIO.emit('createGame', $scope.gameName);
   };
 
   socketIO.on('createGame', function (game) {

@@ -1,16 +1,19 @@
 'use strict';
 
-
-
 var express = require('express');
 var Socket = require('./socket');
 var app = express();
 var httpServer = require('http').Server(app);
 var io = require('socket.io')(httpServer);
 var UserSessions = require('./user-sessions.js');
+var Games = require('./games.js');
+var Game = require('./game.js');
+var _ = require('underscore');
+
 app.use(express.static(__dirname + './../app'));
 
 var userSessions = new UserSessions();
+var games = new Games();
 
 var parseCookie = function(cookie) {
 
@@ -26,8 +29,6 @@ var parseCookie = function(cookie) {
   });
   return result;
 };
-
-var games = [];
 
 io.on('connection', function (_socket) {
   console.log('new connection open');
@@ -71,7 +72,7 @@ io.on('connection', function (_socket) {
 
   socket.on('sendMessage', function (data, ack) {
 
-    socket.broadcast.emit('sendMessage', {
+    io.emit('sendMessage', {
       user: socket.userSession.getUserName(),
       message:data
     });
@@ -88,18 +89,37 @@ io.on('connection', function (_socket) {
 
   socket.on('getListOfGames', function(data, ack) {
     console.log('getListOfGames');
-    ack(games);
+    var result = _.map(games.getGames(), function (game) {
+      return {
+        id: game.getId(),
+        name: game.getName()
+      };
+    });
+    ack(result);
   });
 
-  socket.on('createGame', function(game) {
+  socket.on('createGame', function(name) {
     console.log('createGame');
-    var gameId = game.name.replace(/ /g,'').toLowerCase();
-    var gameObj = {
-      id: gameId,
-      name:game.name
-    };
-     games.push(gameObj);
-    io.emit('createGame', gameObj);
+    var game = new Game(name);
+    games.addGame(game);
+    io.emit('createGame', {
+      id: game.getId(),
+      name: game.getName()
+    });
+  });
+
+  socket.on('getGame', function(id, ack) {
+    console.log('getGame ' + id);
+    var game = games.getGame(id);
+    if (game) {
+      ack({
+        id: game.getId(),
+        name: game.getName()
+      });
+    } else {
+      ack(null);
+    }
+
   });
 
 });

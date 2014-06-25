@@ -22,9 +22,7 @@ angular.module('BomberMan')
 
   $scope.sendMessage = function() {
 
-    socketIO.emit('sendMessage',$scope.chatMessage).then(function () {
-      appendMessage(userSession.getUserName(), $scope.chatMessage);
-    });
+    socketIO.emit('sendMessage',$scope.chatMessage);
 
   };
 
