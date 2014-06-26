@@ -19,7 +19,6 @@ angular.module('BomberMan')
           $location.path('/join/' + response.id);
         } else {
           $scope.game = response;
-          new Game();
           game = new Game($scope.game, ctx);
           game.run();
         }
@@ -28,6 +27,18 @@ angular.module('BomberMan')
       $location.path('/home');
     });
   };
+
+  $scope.$on('keydown', function (event, key) {
+    if (game) {
+      game.keyDown(key);
+    }
+  });
+
+  $scope.$on('keyup', function (event, key) {
+    if (game) {
+      game.keyUp(key);
+    }
+  });
 
   $scope.getCommaSeparatedListOfUsers = function () {
     if (!$scope.game) {

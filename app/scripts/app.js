@@ -27,12 +27,13 @@ angular.module('BomberMan', ['ngRoute', 'ngCookies'])
 
   }])
 
-  .run(['$log', '$rootScope', 'userSession', '$location', 'ioListeners', function ($log, $rootScope, userSession, $location, ioListeners) {
+  .run(['$log', '$rootScope', 'userSession', '$location', 'ioListeners', 'keyInputs',
+   function ($log, $rootScope, userSession, $location, ioListeners, keyInputs) {
 
     $log.debug('application started');
 
     ioListeners.bindListeners();
-
+    keyInputs.bindListeners();
     $rootScope.$on('$routeChangeStart', function(){
 
         var path = $location.path();
