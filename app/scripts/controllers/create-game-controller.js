@@ -18,18 +18,18 @@ angular.module('BomberMan')
     });
   };
 
-  socketIO.on('gameCreated', function (game) {
+  $scope.$on('gameCreated', function (event, game) {
 
     $scope.games.push(game);
   });
 
-  socketIO.on('gameDeleted', function(gameId) {
+  $scope.$on('gameDeleted', function(event, gameId) {
     $scope.games = _.reject($scope.games, function (game) {
       return game.id === gameId;
     });
   });
 
-  socketIO.on('nbUsersInGameHasChanged', function(response) {
+  $scope.$on('nbUsersInGameHasChanged', function(event, response) {
     var game = _.find($scope.games, function (game) {
       return game.id === response.gameId;
     });

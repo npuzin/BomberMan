@@ -4,34 +4,13 @@ var _ = require('underscore');
 var Games = require('./games.js');
 var Game = require('./game.js');
 
-function GameService(socket, io) {
+function GameService(io) {
 
   var games = new Games();
 
-  var getGame = function(game,ack) {
+  this.bindEvents = function (socket) {
 
-    if (game) {
-
-      var users = _.map(game.getUsersInTheGame(), function (user) {
-        return {
-          username: user
-        };
-      });
-
-      ack({
-        id: game.getId(),
-        isStarted: game.isStarted(),
-        name: game.getName(),
-        users: users
-      });
-    } else {
-      ack(null);
-    }
-  };
-
-  this.bindEvents = function () {
-
-    socket.on('getListOfGames', function(data, ack) {
+    socket.on('getListOfGames',  function(data, ack) {
       console.log('getListOfGames');
       var result = _.map(games.getGames(), function (game) {
         return {
@@ -59,7 +38,23 @@ function GameService(socket, io) {
     socket.on('getGame', function(id, ack) {
       console.log('getGame ' + id);
       var game = games.getGame(id);
-      getGame(game,ack);
+      if (game) {
+
+        var users = _.map(game.getUsersInTheGame(), function (user) {
+          return {
+            username: user
+          };
+        });
+
+        ack({
+          id: game.getId(),
+          isStarted: game.isStarted(),
+          name: game.getName(),
+          users: users
+        });
+      } else {
+        ack(null);
+      }
     });
 
     socket.on('deleteGame', function(id, ack) {
@@ -96,17 +91,34 @@ function GameService(socket, io) {
     socket.on('joinAndGetGameDetails', function(gameId, ack) {
       console.log('joinAndGetGameDetails');
       var game = games.getGame(gameId);
-      var hasJoined = game.joinGame(socket.userSession);
-      getGame(game,ack);
-      if (hasJoined) {
-        io.emit('nbUsersInGameHasChanged', {
-          gameId: gameId,
-          userCount: game.getUsersInTheGame().length
+      if (game) {
+        var hasJoined = game.joinGame(socket.userSession);
+
+        var users = _.map(game.getUsersInTheGame(), function (user) {
+          return {
+            username: user
+          };
         });
-        socket.broadcast.emit('userHasJoinedAGame', {
-          gameId: gameId,
-          username: socket.userSession.getUserName()
+
+        ack({
+          id: game.getId(),
+          isStarted: game.isStarted(),
+          name: game.getName(),
+          users: users
         });
+
+        if (hasJoined) {
+          io.emit('nbUsersInGameHasChanged', {
+            gameId: gameId,
+            userCount: game.getUsersInTheGame().length
+          });
+          socket.broadcast.emit('userHasJoinedAGame', {
+            gameId: gameId,
+            username: socket.userSession.getUserName()
+          });
+        }
+      } else {
+        ack(null);
       }
     });
 

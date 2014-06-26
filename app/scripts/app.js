@@ -27,9 +27,11 @@ angular.module('BomberMan', ['ngRoute', 'ngCookies'])
 
   }])
 
-  .run(['$log', '$rootScope', 'userSession', '$location', function ($log, $rootScope, userSession, $location) {
+  .run(['$log', '$rootScope', 'userSession', '$location', 'ioListeners', function ($log, $rootScope, userSession, $location, ioListeners) {
 
     $log.debug('application started');
+
+    ioListeners.bindListeners();
 
     $rootScope.$on('$routeChangeStart', function(){
 

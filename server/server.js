@@ -7,10 +7,10 @@ var httpServer = require('http').Server(app);
 var io = require('socket.io')(httpServer);
 var UserSessions = require('./user-sessions.js');
 var GameService = require('./game-service.js');
+var gameService = new GameService(io);
 app.use(express.static(__dirname + './../app'));
 
 var userSessions = new UserSessions();
-
 
 var parseCookie = function(cookie) {
 
@@ -27,13 +27,21 @@ var parseCookie = function(cookie) {
   return result;
 };
 
+process.on('uncaughtException', function (exception) {
+  console.log(exception.stack);
+});
+
 io.on('connection', function (_socket) {
   console.log('new connection open');
 
   var socket= new Socket(_socket);
   var cookies = parseCookie(_socket.handshake.headers.cookie);
-  if (cookies.username && userSessions.getSession(cookies.username)) {
-    socket.userSession = userSessions.getSession(cookies.username);
+  if (cookies.username) {
+    if (userSessions.getSession(cookies.username)) {
+      socket.userSession = userSessions.getSession(cookies.username);
+    } else {
+      socket.userSession = userSessions.createSession(cookies.username);
+    }
   }
 
   socket.on('login', function(username, ack) {
@@ -82,8 +90,7 @@ io.on('connection', function (_socket) {
     });
   });
 
-  var gameService = new GameService(socket, io);
-  gameService.bindEvents();
+  gameService.bindEvents(socket);
 
 });
 

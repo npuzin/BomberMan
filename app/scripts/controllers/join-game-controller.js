@@ -31,7 +31,7 @@ angular.module('BomberMan')
     socketIO.emit('startGame', $scope.game.id);
   };
 
-  socketIO.on('gameStarted', function(gameId) {
+  $scope.$on('gameStarted', function(event, gameId) {
     if (gameId === $scope.game.id) {
       $location.path('/play/'+$scope.game.id);
     }
@@ -44,21 +44,23 @@ angular.module('BomberMan')
     });
   };
 
-  socketIO.on('gameDeleted', function(gameId) {
+  $scope.$on('gameDeleted', function(event, gameId) {
     if (gameId === $scope.game.id) {
       $location.path('/home');
     }
   });
 
-  socketIO.on('userHasJoinedAGame', function(response) {
+  $scope.$on('userHasJoinedAGame', function(event, response) {
+
     if (response.gameId === $scope.game.id) {
+      console.log('userHasJoinedAGame');
       $scope.game.users.push({
         username:response.username
       });
     }
   });
 
-  socketIO.on('userHasLeftAGame', function(response) {
+  $scope.$on('userHasLeftAGame', function(event, response) {
     if (response.gameId === $scope.game.id) {
       $scope.game.users = _.reject($scope.game.users, function(user) {
         return user.username === response.username;

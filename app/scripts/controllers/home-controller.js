@@ -11,17 +11,16 @@ angular.module('BomberMan')
   $scope.getListOfUsers = function () {
 
     socketIO.emit('getListOfUsers').then(function (result) {
-
       $scope.users = result.data;
     });
   };
 
-  socketIO.on('userHasLoggedIn', function (user) {
+  $scope.$on('userHasLoggedIn', function (event, user) {
 
     $scope.users.push(user);
   });
 
-  socketIO.on('userHasLoggedOut', function (user) {
+  $scope.$on('userHasLoggedOut', function (event, user) {
 
     var i = $scope.users.indexOf(user);
     $scope.users.splice(i,1);

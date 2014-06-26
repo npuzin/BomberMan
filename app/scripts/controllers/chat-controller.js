@@ -2,23 +2,10 @@
 
 angular.module('BomberMan')
 
-.controller('ChatController', ['$scope', 'userSession', 'socketIO', function($scope, userSession, socketIO) {
+.controller('ChatController', ['$scope', 'userSession', 'socketIO', 'chat', function($scope, userSession, socketIO, chat) {
 
-
-  $scope.chatMessage = null;
-  $scope.chatMessages = '';
-
-  var appendMessage = function(user, message) {
-    var lineBreak = '';
-    if ($scope.chatMessages !== '') {
-      lineBreak = '\n';
-    }
-    $scope.chatMessages = $scope.chatMessages + lineBreak + user + ': ' + message;
-    $scope.chatMessage = '';
-
-    var textarea = $('#chatDiv textarea');
-    textarea.scrollTop(textarea[0].scrollHeight);
-  };
+  $scope.chatMessage = '';
+  $scope.chatMessages = chat.getMessages();
 
   $scope.sendMessage = function() {
 
@@ -26,10 +13,13 @@ angular.module('BomberMan')
 
   };
 
+  $scope.$on('messageSent', function(event, data) {
 
-  socketIO.on('messageSent', function(data) {
-
-    appendMessage(data.user,data.message);
+    chat.appendMessage(data.user, data.message);
+    $scope.chatMessages = chat.getMessages();
+    $scope.chatMessage = '';
+    var textarea = $('#chatDiv textarea');
+    textarea.scrollTop(textarea[0].scrollHeight);
   });
 
 
