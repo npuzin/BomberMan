@@ -7,6 +7,7 @@ var Game = require('./game.js');
 function GameService(io) {
 
   var games = new Games();
+  games.loadGamesFromDb();
 
   this.bindEvents = function (socket) {
 

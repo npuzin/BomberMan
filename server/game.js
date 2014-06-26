@@ -1,6 +1,7 @@
 'use strict';
 
 var UserSessions = require('./user-sessions.js');
+var db = require('./db.js');
 
 function Game(name) {
 
@@ -8,6 +9,15 @@ function Game(name) {
   var _name = name;
   var _users = new UserSessions();
   var _isStarted = false;
+
+  this.toJson = function () {
+    return {
+      id: this.getId(),
+      name: this.getName(),
+      users: _users.toJson(),
+      isStarted: this.isStarted()
+    };
+  };
 
   this.getId = function() {
     return _id;

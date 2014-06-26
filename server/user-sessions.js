@@ -22,6 +22,14 @@ function UserSessions() {
 
   };
 
+  this.toJson = function() {
+    var result = [];
+    _sessions.forEach(function(session) {
+      result.push(session.toJson());
+    });
+    return result;
+  };
+
   this.contains = function(session) {
     return _.contains(_sessions, session);
   };

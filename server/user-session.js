@@ -9,6 +9,11 @@ function UserSession(username) {
     return _username;
   };
 
+  this.toJson = function() {
+    return {
+      username: this.getUserName()
+    };
+  };
 }
 
 module.exports = UserSession;
