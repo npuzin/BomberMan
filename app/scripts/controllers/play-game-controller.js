@@ -2,17 +2,27 @@
 
 angular.module('BomberMan')
 
-.controller('PlayGameController', ['$scope', 'socketIO', '$location', '$routeParams', '_',
-  function($scope, socketIO, $location, $routeParams, _) {
+.controller('PlayGameController', ['$scope', 'socketIO', '$location', '$routeParams', '_', 'Game',
+  function($scope, socketIO, $location, $routeParams, _, Game) {
 
   $scope.game= null;
+  var game = null;
+  var c = document.getElementById('myCanvas');
+  var ctx = c.getContext('2d');
 
   var getGameDetails = function(id) {
     socketIO.emit('joinAndGetGameDetails', id).then(function (response) {
       if (response === null) {
         $location.path('/home');
       } else {
-        $scope.game = response;
+        if (!response.isStarted) {
+          $location.path('/join/' + response.id);
+        } else {
+          $scope.game = response;
+          new Game();
+          game = new Game($scope.game, ctx);
+          game.run();
+        }
       }
     }, function () {
       $location.path('/home');
