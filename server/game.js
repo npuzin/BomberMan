@@ -1,7 +1,6 @@
 'use strict';
 
 var UserSessions = require('./user-sessions.js');
-var db = require('./db.js');
 
 function Game(name) {
 
