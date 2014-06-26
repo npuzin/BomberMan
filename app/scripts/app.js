@@ -17,6 +17,10 @@ angular.module('BomberMan', ['ngRoute', 'ngCookies'])
         templateUrl: 'templates/views/join-game.html',
         controller: 'JoinGameController',
       })
+      .when('/play/:gameId', {
+        templateUrl: 'templates/views/play-game.html',
+        controller: 'PlayGameController',
+      })
       .otherwise({
         redirectTo: '/'
       });

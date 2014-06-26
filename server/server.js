@@ -70,7 +70,7 @@ io.on('connection', function (_socket) {
 
   socket.on('sendMessage', function (data, ack) {
     console.log('sendMessage');
-    io.emit('sendMessage', {
+    io.emit('messageSent', {
       user: socket.userSession.getUserName(),
       message:data
     });
@@ -97,19 +97,21 @@ io.on('connection', function (_socket) {
     ack(result);
   });
 
-  socket.on('createGame', function(name) {
+  socket.on('createGameAndJoin', function(name, ack) {
     console.log('createGame');
     var game = new Game(name);
+    game.joinGame(socket.userSession);
     games.addGame(game);
-    io.emit('createGame', {
+    io.emit('gameCreated', {
       id: game.getId(),
       name: game.getName(),
-      userCount: game.getUsersInTheGame.length
+      userCount: game.getUsersInTheGame().length
     });
+    ack(game.getId());
   });
 
-  var getGame = function(id,ack) {
-    var game = games.getGame(id);
+  var getGame = function(game,ack) {
+
     if (game) {
 
       var users = _.map(game.getUsersInTheGame(), function (user) {
@@ -120,6 +122,7 @@ io.on('connection', function (_socket) {
 
       ack({
         id: game.getId(),
+        isStarted: game.isStarted(),
         name: game.getName(),
         users: users
       });
@@ -130,31 +133,56 @@ io.on('connection', function (_socket) {
 
   socket.on('getGame', function(id, ack) {
     console.log('getGame ' + id);
-    getGame(id,ack);
+    var game = games.getGame(id);
+    getGame(game,ack);
   });
 
   socket.on('deleteGame', function(id, ack) {
     console.log('deleteGame ' + id);
     games.deleteGame(id);
     ack();
+    io.emit('gameDeleted', id);
+  });
+
+  socket.on('startGame', function(id) {
+    console.log('startGame ' + id);
+    var game = games.getGame(id);
+    game.run();
+    io.emit('gameStarted', id);
   });
 
   socket.on('leaveGame', function(id, ack) {
     console.log('leaveGame ' + id);
-    games.leaveGame(id, socket.userSession);
+    var game = games.getGame(id);
+    var hasLeft = game.leaveGame(socket.userSession);
     ack();
-  });
-
-  socket.on('joinGame', function(id, ack) {
-    console.log('joinGame ' + id);
-    games.joinGame(socket.userSession);
-    ack();
+    if (hasLeft) {
+      io.emit('nbUsersInGameHasChanged', {
+        gameId: id,
+        userCount: game.getUsersInTheGame().length
+      });
+      socket.broadcast.emit('userHasLeftAGame', {
+        gameId: id,
+        username: socket.userSession.getUserName()
+      });
+    }
   });
 
   socket.on('joinAndGetGameDetails', function(gameId, ack) {
     console.log('joinAndGetGameDetails');
-    games.joinGame(gameId, socket.userSession);
-    getGame(gameId,ack);
+    var game = games.getGame(gameId);
+    var hasJoined = game.joinGame(socket.userSession);
+    getGame(game,ack);
+    if (hasJoined) {
+      io.emit('nbUsersInGameHasChanged', {
+        gameId: gameId,
+        userCount: game.getUsersInTheGame().length
+      });
+      socket.broadcast.emit('userHasJoinedAGame', {
+        gameId: gameId,
+        username: socket.userSession.getUserName()
+      });
+    }
   });
 
 

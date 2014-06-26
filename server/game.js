@@ -7,6 +7,7 @@ function Game(name) {
   var _id = name.replace(/ /g,'').toLowerCase();
   var _name = name;
   var _users = new UserSessions();
+  var _isStarted = false;
 
   this.getId = function() {
     return _id;
@@ -16,14 +17,34 @@ function Game(name) {
     return _name;
   };
 
+  this.isStarted = function() {
+    return _isStarted;
+  };
+
   this.joinGame = function(user) {
+    if (_isStarted) {
+      return false;
+    }
     if (!_users.contains(user)) {
       _users.addSession(user);
+      return true;
+    } else {
+      return false;
     }
   };
 
   this.leaveGame = function(user) {
-    _users.removeSession(user);
+    if (_users.contains(user)) {
+      _users.removeSession(user);
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  this.run = function() {
+    _isStarted = true;
+    console.log('run game' + _id);
   };
 
   this.getUsersInTheGame = function() {

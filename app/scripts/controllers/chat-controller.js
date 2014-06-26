@@ -27,7 +27,7 @@ angular.module('BomberMan')
   };
 
 
-  socketIO.on('sendMessage', function(data) {
+  socketIO.on('messageSent', function(data) {
 
     appendMessage(data.user,data.message);
   });

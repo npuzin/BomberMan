@@ -28,19 +28,6 @@ function Games() {
     }
   };
 
-  this.joinGame = function(gameId, user) {
-    var game = this.getGame(gameId);
-    if (game) {
-      game.joinGame(user);
-    }
-  };
-
-  this.leaveGame = function(gameId, user) {
-    var game = this.getGame(gameId);
-    if (game) {
-      game.leaveGame(user);
-    }
-  };
 }
 
 module.exports = Games;
